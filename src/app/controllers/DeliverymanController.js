@@ -1,18 +1,28 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
 import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 
 class DeliverymanController {
   async index(req, res) {
-    const { page = 1 } = req.query;
+    const { page = 1, limit = 10, q, all, order } = req.query;
+
+    const where = q ? { name: { [Op.iLike]: `%${q}%` } } : {};
+
+    const vLimit = all ? null : limit;
+    const offset = all ? null : (page - 1) * limit;
+
+    const sort = order ? order.split(' ') : ['id'];
 
     const deliverymen = await Deliveryman.findAll({
-      limit: 20,
-      offset: (page - 1) * 20,
+      where,
+      limit: vLimit,
+      offset,
       attributes: ['id', 'name', 'email', 'avatar_id'],
       include: [
         { model: File, as: 'avatar', attributes: ['name', 'path', 'url'] },
       ],
+      order: sort,
     });
 
     return res.json(deliverymen);
@@ -32,14 +42,14 @@ class DeliverymanController {
     if (!(await schema.isValid(req.body)))
       return res.status(400).json({ error: 'Invalid params' });
 
-    const { name, email } = req.body;
+    const { name, email, avatar_id } = req.body;
 
     const existUser = await Deliveryman.findOne({ where: { email } });
 
     if (existUser)
       return res.status(401).json({ error: 'User already exists' });
 
-    const deliveryman = await Deliveryman.create({ name, email });
+    const deliveryman = await Deliveryman.create({ name, email, avatar_id });
 
     return res.json(deliveryman);
   }
@@ -51,7 +61,7 @@ class DeliverymanController {
 
     const deliveryman = await Deliveryman.findByPk(id, {
       include: [
-        { mode: File, as: 'avatar', attributes: ['id', 'path', 'url'] },
+        { model: File, as: 'avatar', attributes: ['id', 'path', 'url'] },
       ],
     });
 
@@ -66,12 +76,15 @@ class DeliverymanController {
     const schema = Yup.object().shape({
       name: Yup.string(),
       email: Yup.string().email(),
+      avatar_id: Yup.number()
+        .positive()
+        .integer(),
     });
 
     if (!(await schema.isValid(req.body)))
       return res.status(400).json({ error: 'Invalid params' });
 
-    const { name, email } = req.body;
+    const { name, email, avatar_id } = req.body;
 
     const deliveryman = await Deliveryman.findByPk(id);
 
@@ -83,7 +96,7 @@ class DeliverymanController {
     if (existDeliveryman && existDeliveryman.email !== deliveryman.email)
       return res.status(400).json({ error: 'User already exist' });
 
-    await deliveryman.update({ name, email });
+    await deliveryman.update({ name, email, avatar_id });
 
     return res.json(deliveryman);
   }

@@ -15,6 +15,15 @@ class Delivery extends Model {
             return isBefore(new Date(), subHours(this.date, 2));
           },
         },
+        status: {
+          type: Sequelize.VIRTUAL,
+          get() {
+            if (this.canceled_at) return 'canceled';
+            if (this.end_date) return 'complete';
+            if (this.start_date) return 'ongoing';
+            return 'pending';
+          },
+        },
       },
       { sequelize }
     );
