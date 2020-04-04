@@ -23,6 +23,18 @@ const updateFile = multer(multerConfig);
 router.post('/session', SessionController.store);
 router.get('/deliverymen/:id', DeliverymanController.show);
 router.get('/deliverymen/:id/deliveries', WithdrawDeliveryController.index);
+router.get('/deliveries/:id', DeliveryController.show);
+
+router.put('/deliveries/:id/withdraw', WithdrawDeliveryController.update);
+
+router.put(
+  '/deliveries/:id/complete',
+  updateFile.single('file'),
+  CompleteDeliveryController.update
+);
+
+router.get('/deliveries/:id/problems', ProblemDeliveryController.index);
+router.post('/deliveries/:id/problems', ProblemDeliveryController.store);
 
 router.use(authMiddleware);
 
@@ -37,23 +49,12 @@ router.post('/deliverymen', DeliverymanController.store);
 router.put('/deliverymen/:id', DeliverymanController.update);
 router.delete('/deliverymen/:id', DeliverymanController.delete);
 
-router.put('/deliveries/:id/withdraw', WithdrawDeliveryController.update);
-router.put(
-  '/deliveries/:id/complete',
-  updateFile.single('file'),
-  CompleteDeliveryController.update
-);
-
 router.post('/files', updateFile.single('file'), FileController.store);
 
 router.post('/deliveries', DeliveryController.store);
 router.put('/deliveries/:id', DeliveryController.update);
-router.get('/deliveries/:id', DeliveryController.show);
 router.delete('/deliveries/:id', DeliveryController.delete);
 router.get('/deliveries', DeliveryController.index);
-
-router.get('/deliveries/:id/problems', ProblemDeliveryController.index);
-router.post('/deliveries/:id/problems', ProblemDeliveryController.store);
 
 router.get('/problems', ProblemController.index);
 router.delete('/problems/:id/cancel-delivery', CancelDeliveryController.update);

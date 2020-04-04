@@ -25,7 +25,7 @@ class WithdrawDeliveryController {
     const deliveyman = await Deliveryman.findByPk(id);
 
     if (!deliveyman)
-      return res.status(400).json({ error: 'Deliveryman not found ' });
+      return res.status(400).json({ error: 'Deliveryman not found' });
 
     const where = { canceled_at: null, deliveryman_id: id };
 
@@ -33,7 +33,15 @@ class WithdrawDeliveryController {
 
     const deliveries = await Delivery.findAll({
       where,
-      attributes: ['id', 'product', 'createdAt', 'start_date', 'end_date', 'status', 'deliveryman_id'],
+      attributes: [
+        'id',
+        'product',
+        'createdAt',
+        'start_date',
+        'end_date',
+        'status',
+        'deliveryman_id',
+      ],
       include: [
         {
           model: Recipient,
@@ -51,7 +59,11 @@ class WithdrawDeliveryController {
       ],
       limit,
       offset: (page - 1) * limit,
-       order: [ finished &&  finished === 'true' ? ['end_date', 'DESC'] : ['createdAt', 'ASC'] ]
+      order: [
+        finished && finished === 'true'
+          ? ['end_date', 'DESC']
+          : ['createdAt', 'ASC'],
+      ],
     });
 
     return res.json(deliveries);
@@ -115,13 +127,6 @@ class WithdrawDeliveryController {
         error: 'You have already started the delivery',
         delivery: { id, product, start_date, recipient_id },
       });
-
-    const sameDeliveryman = req.userId === delivery.deliveryman_id;
-
-    if (!sameDeliveryman)
-      return res
-        .status(401)
-        .json({ error: 'This delivery is assigned to another deliveryman' });
 
     delivery.start_date = start_date;
 

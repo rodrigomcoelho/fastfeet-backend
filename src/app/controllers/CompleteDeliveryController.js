@@ -4,7 +4,9 @@ import File from '../models/File';
 
 class CompleteDeliveryController {
   async update(req, res) {
-    const schema = Yup.object().shape({ end_date: Yup.date() });
+    const schema = Yup.object().shape({
+      end_date: Yup.date(),
+    });
 
     if (!(await schema.isValid(req.body)))
       return res.status(400).json({ error: 'Invalid params ' });
@@ -20,11 +22,6 @@ class CompleteDeliveryController {
     });
 
     if (!delivery) return res.status(400).json({ error: 'Delivery not found' });
-
-    if (req.userId !== delivery.deliveryman_id)
-      return res
-        .status(401)
-        .json({ error: 'You can only update yours delivery' });
 
     if (!req.file)
       return res.status(401).json({ error: 'A signature is required' });
